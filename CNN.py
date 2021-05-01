@@ -7,6 +7,7 @@ from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import cv2
 
 
 def load_data():
@@ -46,7 +47,7 @@ def create_model():
 
 
 def train_and_evaluate(data_x, data_y, n_folds=5):
-    scores = list()
+    bestScore = 0
     # prepare cross validation
     kfold = KFold(n_folds, shuffle=True, random_state=1)
     print("Training scores:")
@@ -62,9 +63,11 @@ def train_and_evaluate(data_x, data_y, n_folds=5):
         # evaluate model
         _, acc = model.evaluate(test_x, test_y, verbose=0)
         print('> %.3f' % (acc * 100.0))
+        if acc > bestScore:
+            bestModel = model
+            bestScore = acc
         # stores scores
-        scores.append(acc)
-    return model, scores
+    return bestModel
 
 
 def actual_test(model, test_x, test_y):
@@ -72,9 +75,16 @@ def actual_test(model, test_x, test_y):
     return acc
 
 
-def load_test_image():
-
-    ...
+def load_test_image(filename):
+    # Read an image as grayscale
+    print("OHOHOHO")
+    cv2.namedWindow("output", cv2.WINDOW_NORMAL)
+    srcImg = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
+    dim = (28, 28)
+    resizedImg = cv2.resize(srcImg, dim)
+    cv2.imshow('output', resizedImg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 def convert_color_to_gray():
@@ -116,13 +126,14 @@ def driver():
     # Training the model
     train_x, train_y, test_x, test_y = load_data()
     train_x, test_x = normalize_image(train_x, test_x)
-    model, train_scores = train_and_evaluate(train_x, train_y)
+    #model = train_and_evaluate(train_x, train_y)
 
     # Actual test the test set
-    acc = actual_test(model, test_x, test_y)
+    #actual_test(model, test_x, test_y)
 
     # Test with custom image
     # TODO: Load the image and resize to 28x28
+    load_test_image('number1color.jpg')
     # TODO: Convert image to grayscale
     # TODO: Run the model on it
 

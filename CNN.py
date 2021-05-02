@@ -2,6 +2,7 @@ from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, MaxPool2D, Flatten
 from keras.optimizers import SGD
+from tensorflow.python.keras.layers import BatchNormalization
 from tensorflow.python.keras.utils.np_utils import to_categorical
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
@@ -37,9 +38,11 @@ def normalize_image(train_x, test_x):
 def create_model():
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)))
+    model.add(BatchNormalization())
     model.add(MaxPool2D((2, 2)))
     model.add(Flatten())
     model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
+    model.add(BatchNormalization())
     model.add(Dense(10, activation='softmax'))
     opti = SGD(lr=0.01, momentum=0.9)
     model.compile(optimizer=opti, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -67,15 +70,15 @@ def train_and_evaluate(data_x, data_y, n_folds=5):
             bestModel = model
             bestScore = acc
         # stores scores
+    bestModel.save('savedModel')
     return bestModel
-
 
 def actual_test(model, test_x, test_y):
     _, acc = model.evaluate(test_x, test_y)
     return acc
 
 
-def load_test_image(filename):
+def test_new_image(filename, model):
     # Read an image as grayscale
     print("OHOHOHO")
     cv2.namedWindow("output", cv2.WINDOW_NORMAL)
@@ -85,10 +88,9 @@ def load_test_image(filename):
     cv2.imshow('output', resizedImg)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-
-def convert_color_to_gray():
-    ...
+    resizedImg = resizedImg.reshape((1, 28, 28, 1))
+    ans = model.predict(resizedImg)
+    print(np.argmax(ans[0]))
 
 
 def step_by_step_visualize():
@@ -126,14 +128,14 @@ def driver():
     # Training the model
     train_x, train_y, test_x, test_y = load_data()
     train_x, test_x = normalize_image(train_x, test_x)
-    #model = train_and_evaluate(train_x, train_y)
+    model = train_and_evaluate(train_x, train_y)
 
     # Actual test the test set
     #actual_test(model, test_x, test_y)
 
     # Test with custom image
     # TODO: Load the image and resize to 28x28
-    load_test_image('number1color.jpg')
+    test_new_image('number1color.jpg', model)
     # TODO: Convert image to grayscale
     # TODO: Run the model on it
 

@@ -140,5 +140,3 @@ def main():
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # stop deprecation warning
 deprecation._PRINT_DEPRECATION_WARNINGS = False
-# driver code control the program
-main()

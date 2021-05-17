@@ -39,20 +39,30 @@ def preprocess_image(filename, display=False):
     prep_imgs = list()
     new_img = cv2.imread(filename)
     gray_img = cv2.cvtColor(new_img, cv2.COLOR_BGR2GRAY)
-    ret, thresh_img = cv2.threshold(gray_img, 127, 255, 0)
-
+    avg_color_per_row = np.average(gray_img, axis=0)
+    avg_color = np.average(avg_color_per_row, axis=0)
+    if avg_color > 127:
+        print("This is a bright image")
+        ret, thresh_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY_INV)
+    else:
+        print("This is a dark image")
+        ret, thresh_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
     # Detect each digit in the image = bounding box
     contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in contours:
+        # If contour is too small or too large then skip
+        area = cv2.contourArea(cnt)
+        if (area < 100) or (area > 0.9*(thresh_img.shape[0] * thresh_img.shape[1])):
+            continue
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(new_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cropped_img = thresh_img[y-5:y+h+5, x-5:x+w+5]
+        cropped_img = thresh_img[y:y+h, x:x+w]
         # After crop image to 18x18, padding 5px each side to 28x28
         resized_img = cv2.resize(cropped_img, (18, 18))
-        padded_img = cv2.copyMakeBorder(resized_img, 5, 5, 5, 5, cv2.BORDER_REPLICATE)
+        padded_img = cv2.copyMakeBorder(resized_img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, 0)
         prep_imgs.append(padded_img)
     if display:
-        cv2.imshow('output', thresh_img)
+        cv2.imshow('output', new_img)
         cv2.waitKey(0)
     return prep_imgs
 
@@ -62,6 +72,7 @@ def main():
     prep_imgs = preprocess_image('hw_digits2.png', True)
     result_number = ''
     for img in prep_imgs:
+        cv2.namedWindow('output', cv2.WINDOW_NORMAL)
         cv2.imshow('output', img)
         cv2.waitKey(0)
         x_test = img.reshape((1, 28, 28, 1))
@@ -72,7 +83,7 @@ def main():
         print('Predicted:', np.argmax(ans[0]))
         # print('Original ans:', ans[0])
     print(result_number)
-
+    cv2.destroyAllWindows()
 
 # Main code start here
 main()

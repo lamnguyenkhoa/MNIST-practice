@@ -23,7 +23,6 @@ def load_data():
     # one hot encode target values
     train_y = to_categorical(train_y)
     test_y = to_categorical(test_y)
-    train_x, test_x = normalize_image(train_x, test_x)
     return train_x, train_y, test_x, test_y
 
 
@@ -85,6 +84,7 @@ def get_model(load=True):
         model = keras.models.load_model('savedModel')
     else:
         train_x, train_y, test_x, test_y = load_data()
+        train_x, test_x = normalize_image(train_x, test_x)
         model = train_and_evaluate(train_x, train_y)
     return model
 
@@ -121,12 +121,14 @@ def layers_visualize():
 
 
 def main():
+    #layers_visualize()
     train_x, train_y, test_x, test_y = load_data()
+    train_x, test_x = normalize_image(train_x, test_x)
     model = get_model()
 
     # Actual test the test set
-    acc = actual_test(model, test_x, test_y)
-    print("Test score:", acc)
+    #acc = actual_test(model, test_x, test_y)
+    #print("Test score:", acc)
 
     # NOTE: Make sure the image has black/dark background and white/light number
     # NOTE: 0 is black, 255 is white

@@ -1,5 +1,5 @@
 import cv2
-import mnist_cnn
+import cnn_model
 import numpy as np
 
 
@@ -52,6 +52,11 @@ def preprocess_image(filename, display=False):
         # After crop image to 16x20, padding to 28x28
         resized_img = cv2.resize(cropped_img, (16, 20))
         padded_img = cv2.copyMakeBorder(resized_img, 4, 4, 6, 6, cv2.BORDER_CONSTANT, 0)
+
+        # More processing
+        padded_img = cv2.blur(padded_img, (2, 2))
+        padded_img = cv2.equalizeHist(padded_img)
+
         prep_imgs.append(padded_img)
     if display:
         cv2.imshow('output', new_img)
@@ -60,7 +65,7 @@ def preprocess_image(filename, display=False):
 
 
 def main():
-    model = mnist_cnn.get_model()
+    model = cnn_model.get_model()
     prep_imgs = preprocess_image('hw_digits2.png', True)
     result_number = ''
     for img in prep_imgs:

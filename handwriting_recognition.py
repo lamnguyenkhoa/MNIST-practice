@@ -30,10 +30,10 @@ def sort_contours(cnts, img_dim, method="left-to-right"):
     return cnts, bounding_boxes
 
 
-def preprocess_image(filename, display=False):
+def preprocess_image(src_img):
     prep_imgs = list()
-    new_img = cv2.imread(filename)
-    gray_img = cv2.cvtColor(new_img, cv2.COLOR_BGR2GRAY)
+    loc_imgs = list()
+    gray_img = cv2.cvtColor(src_img, cv2.COLOR_BGR2GRAY)
     avg_color_per_row = np.average(gray_img, axis=0)
     avg_color = np.average(avg_color_per_row, axis=0)
     if avg_color > 127:
@@ -42,48 +42,56 @@ def preprocess_image(filename, display=False):
     else:
         print("This is a dark image")
         ret, thresh_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
+    thresh_img = cv2.blur(thresh_img, (2, 2))
     # Detect each digit in the image = bounding box
     contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     _, bounding_boxes = sort_contours(contours, thresh_img.shape)
     for box in bounding_boxes:
         x, y, w, h = box[0], box[1], box[2], box[3]
-        cv2.rectangle(new_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        loc_imgs.append((x, y, w, h))
         cropped_img = thresh_img[y:y+h, x:x+w]
         # After crop image to 16x20, padding to 28x28
         resized_img = cv2.resize(cropped_img, (16, 20))
         padded_img = cv2.copyMakeBorder(resized_img, 4, 4, 6, 6, cv2.BORDER_CONSTANT, 0)
-
         # More processing
-        padded_img = cv2.blur(padded_img, (2, 2))
         padded_img = cv2.equalizeHist(padded_img)
-
         prep_imgs.append(padded_img)
-    if display:
-        cv2.imshow('output', new_img)
-        cv2.waitKey(0)
-    return prep_imgs
+    return prep_imgs, loc_imgs
 
 
 def main():
     model = cnn_model.get_model()
-    prep_imgs = preprocess_image('hw_digits2.png', True)
-    result_number = ''
-    for img in prep_imgs:
-        cv2.namedWindow('output', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('output', (200, 200))
-        cv2.imshow('output', img)
-        cv2.waitKey(0)
-        x_test = img.reshape((1, 28, 28, 1))
+    src_img = cv2.imread('test_images/hw_image2.png')
+    prep_imgs, loc_imgs = preprocess_image(src_img)
+    n = len(prep_imgs)
+    result_string = ''
+    label_names = cnn_model.get_label()
+    for i in range(n):
+        # cv2.namedWindow('output', cv2.WINDOW_NORMAL)
+        # cv2.resizeWindow('output', (200, 200))
+        # cv2.imshow('output', img)
+        # cv2.waitKey(0)
+        x_test = prep_imgs[i].reshape((1, 28, 28, 1))
         x_test = x_test.astype('float32')
         x_test = x_test / 255.0
         ans = model.predict(x_test)
-        result_number = result_number + str(np.argmax(ans[0]))
-        print('Predicted:', np.argmax(ans[0]))
+        tmp = np.argmax(ans[0])
+        result_string = result_string + label_names[tmp]
+        # print('Predicted:', label_names[tmp])
         # print('Original ans:', ans[0])
-    print(result_number)
+        # Draw on image
+        x, y, w, h = loc_imgs[i]
+        cv2.rectangle(src_img, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=2)
+        cv2.putText(src_img, label_names[tmp], org=(x - 10, y - 10),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=1)
+    cv2.imshow('output', src_img)
+    cv2.waitKey(0)
+    print(result_string)
     cv2.destroyAllWindows()
 
 
 # MAIN CODE START HERE
 if __name__ == "__main__":
     main()
+
+# TODO: Order of words

@@ -83,5 +83,7 @@ def main():
     print(result_number)
     cv2.destroyAllWindows()
 
-# Main code start here
-main()
+
+# MAIN CODE START HERE
+if __name__ == "__main__":
+    main()

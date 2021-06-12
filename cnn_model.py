@@ -5,6 +5,7 @@ from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, BatchNormalization, 
 from keras.optimizers import SGD
 from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -53,18 +54,25 @@ def create_model():
     model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))  # speedup training and simplify model
     model.add(BatchNormalization())  # keep data in range(0,1)
     model.add(Dense(47, activation='softmax'))  # normalize output into probability distribution (47 labels)
-    opti = SGD(lr=0.01, momentum=0.9)
+    opti = SGD(lr=0.01, momentum=0.9, decay=0.02/10)
     model.compile(optimizer=opti, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
 
-def train_model(train_x, train_y):
+def image_augment():
+    ...
+
+
+def quick_train_and_evaluate(data_x, data_y, save=False):
     model = create_model()
-    model.fit(train_x, train_y, epochs=10, batch_size=32, validation_split=0.1, verbose=0)
-    model.saved("saved_model")
+    train_x, test_x, train_y, test_y = train_test_split(data_x, data_y, test_size=0.1)
+    model.fit(train_x, train_y, epochs=10, batch_size=64, validation_data=(test_x, test_y), verbose=1)
+    model.evaluate(test_x, test_y, verbose=1)
+    if save:
+        model.save("saved_model")
 
 
-def train_and_evaluate(data_x, data_y, n_folds=5, save=False):
+def kfold_train_and_evaluate(data_x, data_y, n_folds=5, save=False):
     print("=======TRAIN AND EVALUATE===========")
     histories = list()
     bestScore = 0
@@ -75,7 +83,7 @@ def train_and_evaluate(data_x, data_y, n_folds=5, save=False):
         model = create_model()
         train_x, train_y = data_x[train_index], data_y[train_index]
         test_x, test_y = data_x[test_index], data_y[test_index]
-        history = model.fit(train_x, train_y, epochs=10, batch_size=32, validation_data=(test_x, test_y), verbose=1)
+        history = model.fit(train_x, train_y, epochs=10, batch_size=32, validation_data=(test_x, test_y), verbose=0)
         _, acc = model.evaluate(test_x, test_y, verbose=0)
         print('> %.3f' % (acc * 100.0))
         histories.append(history)
@@ -88,15 +96,24 @@ def train_and_evaluate(data_x, data_y, n_folds=5, save=False):
     return histories, best_model
 
 
+def get_label():
+    label_names = []
+    for row in open("emnist_data/emnist-balanced-mapping.txt"):
+        num = int(row.split()[1])
+        label_names.append(chr(num))
+    return label_names
+
+
 def get_model(load=True):
     # TODO: Take into account skewed images
     if load:
         model = keras.models.load_model('saved_model')
     else:
+        label_names = get_label()
         train_x, train_y = load_data()
         print("Finished loading data")
         train_x = normalize_image(train_x)
-        model = train_and_evaluate(train_x, train_y, n_folds=5, save=True)
+        model = kfold_train_and_evaluate(train_x, train_y, n_folds=5, save=True)
     return model
 
 

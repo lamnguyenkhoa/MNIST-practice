@@ -49,8 +49,9 @@ def quick_train_and_evaluate(x_data, y_data, label_names, save):
     y_predict = model.predict(x_test)
     if save:
         model.save("saved_model")
-    np.savetxt("pred_true_log.txt", np.argmax(y_predict, axis=1), delimiter=',', fmt='%d')
-    np.savetxt("pred_true_log.txt", np.argmax(y_test, axis=1), delimiter=',', fmt='%d')
+    y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
+    y_write = np.transpose(y_write)
+    np.savetxt("pred_true_log.csv", y_write, delimiter=",", fmt='%d')
     return model
 
 

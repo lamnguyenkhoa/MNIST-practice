@@ -17,22 +17,20 @@ def model_predict_to_log():
     x_data = normalize_image(x_data)
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
     y_predict = model.predict(x_test)
-    f = open("pred_true_log.txt", "w")
-    np.savetxt(f, np.argmax(y_predict, axis=1), delimiter=',', fmt='%d')
-    np.savetxt(f, np.argmax(y_test, axis=1), delimiter=',', fmt='%d')
-    f.close()
+    y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
+    y_write = np.transpose(y_write)
+    np.savetxt("pred_true_log.csv", y_write, delimiter=",", fmt='%d')
 
 
 def analyse_log():
-    y_data = []
-    for row in open("pred_true_log.txt"):
-        row = row.split()
-        y_data.append(int(row[0]))
-
-    n = len(y_data)
+    y_test = []
+    y_predict = []
+    for row in open("pred_true_log.csv"):
+        row = row.split(",")
+        y_test.append(int(row[0]))
+        y_predict.append(int(row[1]))
+    n = len(y_test)
     tmp = int(n/2)
-    y_predict = y_data[0:tmp-1]
-    y_test = y_data[tmp:n-1]
     label_names = get_label(DatasetEnum.MNIST_AZ)
     print(classification_report(y_test, y_predict, target_names=label_names))
     cm = confusion_matrix(y_test, y_predict)
@@ -40,5 +38,5 @@ def analyse_log():
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-# model_predict_to_log()
+model_predict_to_log()
 analyse_log()

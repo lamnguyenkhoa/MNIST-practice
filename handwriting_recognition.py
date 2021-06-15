@@ -65,15 +65,15 @@ def preprocess_image(src_img):
 def main():
     model = model_training.get_model(load=True, dataset_used=DatasetEnum.MNIST_AZ)
     label_names = get_label(DatasetEnum.MNIST_AZ)
-    src_img = cv2.imread('test_images/hw_image2.png')
+    src_img = cv2.imread('test_images/hw_image1.png')
     prep_imgs, loc_imgs = preprocess_image(src_img)
     n = len(prep_imgs)
     result_string = ''
     for i in range(n):
-        # cv2.namedWindow('output', cv2.WINDOW_NORMAL)
-        # cv2.resizeWindow('output', (200, 200))
-        # cv2.imshow('output', img)
-        # cv2.waitKey(0)
+        cv2.namedWindow('output', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('output', (200, 200))
+        cv2.imshow('output', prep_imgs[i])
+        cv2.waitKey(0)
         x_test = prep_imgs[i].reshape((1, 28, 28, 1))
         x_test = x_test.astype('float32')
         x_test = x_test / 255.0
@@ -98,3 +98,4 @@ if __name__ == "__main__":
     main()
 
 # TODO: Order of words
+# TODO: Preprocess for "thin" character such as 1, I or i

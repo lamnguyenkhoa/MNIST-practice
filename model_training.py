@@ -42,31 +42,29 @@ def image_augment():
     ...
 
 
-def quick_train_and_evaluate(data_x, data_y, label_names, save):
+def quick_train_and_evaluate(x_data, y_data, label_names, save):
     model = create_model(len(label_names))
-    train_x, x_test, y_train, y_test = train_test_split(data_x, data_y, test_size=0.1)
-    model.fit(train_x, y_train, epochs=10, batch_size=64, validation_data=(x_test, y_test), verbose=1)
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
+    model.fit(x_train, y_train, epochs=10, batch_size=64, validation_data=(x_test, y_test), verbose=1)
     y_predict = model.predict(x_test)
     if save:
         model.save("saved_model")
-
-    np.savetxt("log.txt", y_predict.argmax(), delimiter=',', fmt='f')
-    np.savetxt("log.txt", y_test.argmax(), delimiter=',', fmt='f')
-    # classification_report(y_test.argmax(axis=1), y_predict.argmax(axis=1), labels=label_names)
+    np.savetxt("pred_true_log.txt", np.argmax(y_predict, axis=1), delimiter=',', fmt='%d')
+    np.savetxt("pred_true_log.txt", np.argmax(y_test, axis=1), delimiter=',', fmt='%d')
     return model
 
 
-def kfold_train_and_evaluate(data_x, data_y, n_folds, label_names, save):
+def kfold_train_and_evaluate(x_data, y_data, n_folds, label_names, save):
     print("=======TRAIN AND EVALUATE===========")
     histories = list()
     bestScore = 0
     kfold = KFold(n_folds, shuffle=True, random_state=1)
     best_model = None
-    for train_index, test_index in kfold.split(data_x):
+    for train_index, test_index in kfold.split(x_data):
         # define model
         model = create_model(len(label_names))
-        x_train, y_train = data_x[train_index], data_y[train_index]
-        x_test, y_test = data_x[test_index], data_y[test_index]
+        x_train, y_train = x_data[train_index], y_data[train_index]
+        x_test, y_test = x_data[test_index], y_data[test_index]
         history = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=0)
         _, acc = model.evaluate(x_test, y_test, verbose=0)
         print('> %.3f' % (acc * 100.0))
@@ -84,10 +82,10 @@ def get_model(load, dataset_used):
     if load:
         model = keras.models.load_model('saved_model')
     else:
-        x_train, y_train, label_names = get_dataset(dataset_used)
+        x_data, y_data, label_names = get_dataset(dataset_used)
         print("Finished loading data")
-        x_train = normalize_image(x_train)
-        model = quick_train_and_evaluate(x_train, y_train, label_names, save=True)
+        x_data = normalize_image(x_data)
+        model = quick_train_and_evaluate(x_data, y_data, label_names, save=True)
     return model
 
 

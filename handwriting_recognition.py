@@ -1,5 +1,8 @@
 import cv2
-import cnn_model
+
+from choose_dataset import DatasetEnum
+from choose_dataset import get_label
+import model_training
 import numpy as np
 
 
@@ -60,12 +63,12 @@ def preprocess_image(src_img):
 
 
 def main():
-    model = cnn_model.get_model()
+    model = model_training.get_model(load=True, dataset_used=DatasetEnum.MNIST_AZ)
+    label_names = get_label(DatasetEnum.MNIST_AZ)
     src_img = cv2.imread('test_images/hw_image2.png')
     prep_imgs, loc_imgs = preprocess_image(src_img)
     n = len(prep_imgs)
     result_string = ''
-    label_names = cnn_model.get_label()
     for i in range(n):
         # cv2.namedWindow('output', cv2.WINDOW_NORMAL)
         # cv2.resizeWindow('output', (200, 200))

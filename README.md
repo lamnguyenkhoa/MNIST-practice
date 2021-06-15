@@ -1,5 +1,9 @@
 ### Practice handwriting digits and letters recognition
 
-Data used is the EMNIST-balanced dataset from EMNIST dataset on Kaggle: https://www.kaggle.com/crawford/emnist
 
-Put training and test data files into /emnist-data in root folder
+Put all data files into `/training_data` in root folder
+
+Dataset used in this project:
+
+- EMNIST-balanced sub dataset from EMNIST dataset: https://www.kaggle.com/crawford/emnist
+- A-Z handwritten alphabets: https://www.kaggle.com/sachinpatel21/az-handwritten-alphabets-in-csv-format

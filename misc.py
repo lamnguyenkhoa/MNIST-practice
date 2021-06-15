@@ -1,32 +1,44 @@
-# Contain unused code
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.model_selection import train_test_split
+import numpy as np
+from choose_dataset import get_label
+from choose_dataset import DatasetEnum
+from choose_dataset import get_dataset
+from model_training import normalize_image
+import keras
+import os
+import matplotlib.pyplot as plt
 
 
-def layers_visualize():
-    print('=================Visualize==================')
-    train_x, train_y, test_x, test_y = load_data()
-    # Draw the original image
-    plt.imshow(train_x[0], cmap=plt.get_cmap('gray'))
-    plt.show()
-    # Layer 1
-    layer1 = Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1))
-    draw_data = np.asarray([train_x[0]])
-    draw_data = draw_data.astype('float32')
-    draw_data = draw_data / 255.0
-    draw_data = layer1(draw_data)
-    print("Layer1 dim:", draw_data.shape)
-    for i in range(draw_data.shape[3]):
-        plt.subplot(4, 8, i + 1)
-        plt.imshow(draw_data[0, :, :, i], cmap=plt.get_cmap('gray'))
-    plt.show()
-    # Layer 2
-    layer2 = MaxPool2D((2, 2))
-    draw_data = layer2(draw_data)
-    print("Layer2 dim:", draw_data.shape)
-    for i in range(draw_data.shape[3]):
-        plt.subplot(4, 8, i + 1)
-        plt.imshow(draw_data[0, :, :, i], cmap=plt.get_cmap('gray'))
-    plt.show()
-    # Layer 3
-    layer3 = Flatten()
-    draw_data = layer3(draw_data)
-    print("Layer3 dim:", draw_data.shape)
+def model_predict_to_log():
+    """Load a model and use it to evaluate to save time"""
+    model = keras.models.load_model('saved_model')
+    x_data, y_data, label_names = get_dataset(DatasetEnum.MNIST_AZ)
+    x_data = normalize_image(x_data)
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
+    y_predict = model.predict(x_test)
+    f = open("pred_true_log.txt", "w")
+    np.savetxt(f, np.argmax(y_predict, axis=1), delimiter=',', fmt='%d')
+    np.savetxt(f, np.argmax(y_test, axis=1), delimiter=',', fmt='%d')
+    f.close()
+
+
+def analyse_log():
+    y_data = []
+    for row in open("pred_true_log.txt"):
+        row = row.split()
+        y_data.append(int(row[0]))
+
+    n = len(y_data)
+    tmp = int(n/2)
+    y_predict = y_data[0:tmp-1]
+    y_test = y_data[tmp:n-1]
+    label_names = get_label(DatasetEnum.MNIST_AZ)
+    print(classification_report(y_test, y_predict, target_names=label_names))
+    cm = confusion_matrix(y_test, y_predict)
+    np.savetxt("confusion_matrix_log.csv", cm, delimiter=",", fmt='%d')
+
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# model_predict_to_log()
+analyse_log()

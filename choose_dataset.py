@@ -71,6 +71,7 @@ def get_label(val):
     if val == DatasetEnum.MNIST_AZ:
         label_names = "0123456789"
         label_names += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        label_names = [str(c) for c in label_names]
     return label_names
 
 

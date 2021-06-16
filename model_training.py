@@ -1,17 +1,11 @@
 import keras
 import numpy as np
 import os
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, BatchNormalization, Dropout
+from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, BatchNormalization, Dropout, Input
 from keras.optimizers import SGD
-from sklearn.model_selection import KFold
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold, train_test_split
 import tensorflow.python.util.deprecation as deprecation
-from choose_dataset import get_dataset
-from choose_dataset import get_label
-from choose_dataset import DatasetEnum
+from choose_dataset import get_dataset, DatasetEnum
 
 
 def normalize_image(image_data):
@@ -21,8 +15,8 @@ def normalize_image(image_data):
     return image_data
 
 
-def create_model(n_label):
-    model = Sequential()
+def create_homemade_model(n_label):
+    model = keras.Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)))
     model.add(BatchNormalization())  # keep data in range(0,1)
     model.add(MaxPool2D((2, 2)))  # down-sampling/ reduce size of data
@@ -38,17 +32,47 @@ def create_model(n_label):
     return model
 
 
+def vgg_block(layer_in, n_filters, n_conv):
+    """
+    Function for creating a vgg block
+    Copied from https://machinelearningmastery.com/how-to-implement-major-architecture-innovations-for-convolutional-neural-networks/
+    """
+    # add convolutional layers
+    for _ in range(n_conv):
+        layer_in = Conv2D(n_filters, (3, 3), padding='same', activation='relu')(layer_in)
+    # add max pooling layer
+    layer_in = MaxPool2D((2, 2), strides=(2, 2))(layer_in)
+    return layer_in
+
+
+def create_vgg_model(n_label):
+    input_layer = Input(shape=(28, 28, 1))
+    vgg1_layer = vgg_block(input_layer, 32, 2)
+    vgg2_layer = vgg_block(vgg1_layer, 64, 2)
+    flatten_layer = Flatten()(vgg2_layer)
+    output_layer = Dense(n_label, activation='softmax')(flatten_layer)
+    model = keras.Model(inputs=input_layer, outputs=output_layer)
+    opti = SGD(lr=0.01, momentum=0.9)
+    model.compile(optimizer=opti, loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+def create_inception_model(n_label):
+    ...
+
+
 def image_augment():
     ...
 
 
 def quick_train_and_evaluate(x_data, y_data, label_names, save):
-    model = create_model(len(label_names))
+    model = create_vgg_model(len(label_names))
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
     model.fit(x_train, y_train, epochs=10, batch_size=64, validation_data=(x_test, y_test), verbose=1)
     y_predict = model.predict(x_test)
     if save:
-        model.save("saved_model")
+        filepath = "saved_model"
+        model.save(filepath)
     y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
     y_write = np.transpose(y_write)
     np.savetxt("pred_true_log.csv", y_write, delimiter=",", fmt='%d')
@@ -63,7 +87,7 @@ def kfold_train_and_evaluate(x_data, y_data, n_folds, label_names, save):
     best_model = None
     for train_index, test_index in kfold.split(x_data):
         # define model
-        model = create_model(len(label_names))
+        model = create_homemade_model(len(label_names))
         x_train, y_train = x_data[train_index], y_data[train_index]
         x_test, y_test = x_data[test_index], y_data[test_index]
         history = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=0)
@@ -79,19 +103,21 @@ def kfold_train_and_evaluate(x_data, y_data, n_folds, label_names, save):
     return histories, best_model
 
 
-def get_model(load, dataset_used):
-    if load:
-        model = keras.models.load_model('saved_model')
-    else:
-        x_data, y_data, label_names = get_dataset(dataset_used)
-        print("Finished loading data")
-        x_data = normalize_image(x_data)
-        model = quick_train_and_evaluate(x_data, y_data, label_names, save=True)
+def get_trained_model():
+    model = keras.models.load_model('saved_model')
+    return model
+
+
+def train_model(dataset_used):
+    x_data, y_data, label_names = get_dataset(dataset_used)
+    print("Finished loading data")
+    x_data = normalize_image(x_data)
+    model = quick_train_and_evaluate(x_data, y_data, label_names, save=True)
     return model
 
 
 def main():
-    get_model(load=False, dataset_used=DatasetEnum.MNIST_AZ)
+    train_model(dataset_used=DatasetEnum.MNIST_AZ)
 
 
 # MAIN CODE START HERE

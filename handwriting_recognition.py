@@ -1,12 +1,43 @@
 import cv2
-
 from choose_dataset import DatasetEnum
 from choose_dataset import get_label
 import model_training
 import numpy as np
 
 
+def display_image_cv2(img):
+    cv2.namedWindow('output', cv2.WINDOW_NORMAL)
+    cv2.resizeWindow('output', (200, 200))
+    cv2.imshow('output', img)
+    cv2.waitKey(0)
+
+
+def ratio_resize(img):
+    """
+    Resized an image while keep its ratio
+    """
+    (old_h, old_w) = img.shape[:2]
+    # First, make the image square shape
+    if old_w > old_h:
+        diff = old_w - old_h
+        if diff % 2 == 0:
+            img = cv2.copyMakeBorder(img, diff//2, diff//2, 0, 0, cv2.BORDER_CONSTANT, 0)
+        else:
+            img = cv2.copyMakeBorder(img, diff//2, diff-(diff//2), 0, 0, cv2.BORDER_CONSTANT, 0)
+
+    if old_h > old_w:
+        diff = old_h - old_w
+        if diff % 2 == 0:
+            img = cv2.copyMakeBorder(img, 0, 0, diff//2, diff//2, cv2.BORDER_CONSTANT, 0)
+        else:
+            img = cv2.copyMakeBorder(img, 0, 0, diff//2, diff-(diff//2), cv2.BORDER_CONSTANT, 0)
+    # Then resize it normally
+    resized_img = cv2.resize(img, (16, 20), cv2.INTER_AREA)
+    return resized_img
+
+
 def sort_contours(cnts, img_dim, method="left-to-right"):
+    """ Copied from imutils package"""
     # initialize the reverse flag and sort index
     reverse = False
     i = 0
@@ -54,7 +85,8 @@ def preprocess_image(src_img):
         loc_imgs.append((x, y, w, h))
         cropped_img = thresh_img[y:y+h, x:x+w]
         # After crop image to 16x20, padding to 28x28
-        resized_img = cv2.resize(cropped_img, (16, 20))
+        resized_img = ratio_resize(cropped_img)
+        print("image size:", resized_img.shape)
         padded_img = cv2.copyMakeBorder(resized_img, 4, 4, 6, 6, cv2.BORDER_CONSTANT, 0)
         # More processing
         padded_img = cv2.equalizeHist(padded_img)
@@ -70,10 +102,7 @@ def main():
     n = len(prep_imgs)
     result_string = ''
     for i in range(n):
-        cv2.namedWindow('output', cv2.WINDOW_NORMAL)
-        cv2.resizeWindow('output', (200, 200))
-        cv2.imshow('output', prep_imgs[i])
-        cv2.waitKey(0)
+        display_image_cv2(prep_imgs[i])
         x_test = prep_imgs[i].reshape((1, 28, 28, 1))
         x_test = x_test.astype('float32')
         x_test = x_test / 255.0
@@ -82,6 +111,7 @@ def main():
         result_string = result_string + label_names[tmp]
         # print('Predicted:', label_names[tmp])
         # print('Original ans:', ans[0])
+
         # Draw on image
         x, y, w, h = loc_imgs[i]
         cv2.rectangle(src_img, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=2)
@@ -98,4 +128,5 @@ if __name__ == "__main__":
     main()
 
 # TODO: Order of words
-# TODO: Preprocess for "thin" character such as 1, I or i
+# TODO: How to capture the upper "dot" in letter i
+# TODO: Difference in 1, l, i, j

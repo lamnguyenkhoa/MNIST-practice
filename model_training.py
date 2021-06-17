@@ -1,8 +1,9 @@
 import keras
 import numpy as np
 import os
-from sklearn.model_selection import KFold, train_test_split
 import tensorflow.python.util.deprecation as deprecation
+from datetime import datetime
+from sklearn.model_selection import KFold, train_test_split
 from choose_dataset import get_dataset, DatasetEnum, DatasetDescription
 from choose_model import ModelEnum
 
@@ -31,7 +32,8 @@ def quick_train_and_evaluate(x_data, y_data, model, label_names, save, model_nam
     np.savetxt("pred_true_log.csv", y_write, delimiter=",", fmt='%d')
     np.savetxt(filepath + "/labels.txt", label_names, newline=' ', fmt='%s')
     with open(filepath + "/info.txt", "w") as f:
-        f.write(DatasetDescription.MNIST_AZ)
+        f.writelines(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))  # Log datetime
+        f.writelines(DatasetDescription.MNIST_AZ)
     return model
 
 

@@ -3,11 +3,11 @@ import os
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split
-
+import matplotlib.pyplot as plt
 import choose_dataset
 from choose_dataset import get_label, get_dataset, DatasetEnum
 from model_training import normalize_image
-import matplotlib.pyplot as plt
+
 
 
 def visualise_sample():
@@ -22,7 +22,9 @@ def visualise_sample():
 
 
 def model_predict_to_log():
-    """Load a model and use it to evaluate to save time"""
+    """
+    Load a model and use it to evaluate to save time
+    """
     model = keras.models.load_model('trained_models')
     x_data, y_data, label_names = get_dataset(DatasetEnum.MNIST_AZ)
     x_data = normalize_image(x_data)
@@ -34,6 +36,9 @@ def model_predict_to_log():
 
 
 def analyse_log():
+    """
+    Create confusion matrix and write to log file
+    """
     y_test = []
     y_predict = []
     for row in open("log/pred_true_log.csv"):

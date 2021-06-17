@@ -37,12 +37,10 @@ def get_mnist_az_data():
     # Avoid same labels as mnist digits
     for i in range(len(az_y_data)):
         az_y_data[i] += 10
-
     # Load MNIST data
     ((x_train, y_train), (x_test, y_test)) = mnist.load_data()
     mnist_x_data = np.vstack([x_train, x_test])
     mnist_y_data = np.hstack([y_train, y_test])
-
     # Merge both of them
     x_data = np.vstack([az_x_data, mnist_x_data])
     y_data = np.hstack([az_y_data, mnist_y_data])
@@ -78,14 +76,13 @@ def get_mnist_emnist_letter_data():
     # Avoid same labels as mnist digits
     for i in range(len(y_data)):
         y_data[i] += 10
-
-    # Load MNIST data and merge
+    # Load MNIST data
     ((x_train, y_train), (x_test, y_test)) = mnist.load_data()
     mnist_x_data = np.vstack([x_train, x_test])
     mnist_y_data = np.hstack([y_train, y_test])
+    # Merge both of them
     x_data = np.vstack([x_data, mnist_x_data])
     y_data = np.hstack([y_data, mnist_y_data])
-
     n = len(x_data)
     x_data = x_data.reshape((n, 28, 28, 1))
     y_data = np.array(y_data)
@@ -100,11 +97,7 @@ def get_label(val):
         for row in open("training_data/emnist-balanced-mapping.txt"):
             num = int(row.split()[1])
             label_names.append(chr(num))
-    if val == DatasetEnum.MNIST_AZ:
-        label_names = "0123456789"
-        label_names += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        label_names = [str(c) for c in label_names]
-    if val == DatasetEnum.MNIST_EMNIST_LETTER:
+    if (val == DatasetEnum.MNIST_AZ) or (val == DatasetEnum.MNIST_EMNIST_LETTER):
         label_names = "0123456789"
         label_names += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         label_names = [str(c) for c in label_names]

@@ -71,7 +71,7 @@ def quick_train_and_evaluate(x_data, y_data, label_names, save):
     model.fit(x_train, y_train, epochs=10, batch_size=64, validation_data=(x_test, y_test), verbose=1)
     y_predict = model.predict(x_test)
     if save:
-        filepath = "saved_model"
+        filepath = "trained_models" + "/vgg_model"
         model.save(filepath)
     y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
     y_write = np.transpose(y_write)
@@ -98,13 +98,13 @@ def kfold_train_and_evaluate(x_data, y_data, n_folds, label_names, save):
             best_model = model
             bestScore = acc
     if save:
-        best_model.save('saved_model')
+        best_model.save('trained_models/vgg_model')
     print('==============================')
     return histories, best_model
 
 
-def get_trained_model():
-    model = keras.models.load_model('saved_model')
+def get_trained_model(model_name):
+    model = keras.models.load_model("trained_models/"+model_name)
     return model
 
 

@@ -1,18 +1,27 @@
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split
-import numpy as np
-from choose_dataset import get_label
-from choose_dataset import DatasetEnum
-from choose_dataset import get_dataset
-from model_training import normalize_image
 import keras
 import os
+import numpy as np
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.model_selection import train_test_split
+from choose_dataset import get_label, get_dataset, DatasetEnum
+from model_training import normalize_image
 import matplotlib.pyplot as plt
+
+
+def visualise_sample():
+    x_data, y_data, label_names = get_dataset(DatasetEnum.MNIST_AZ)
+    print(x_data.shape)
+    print(y_data.shape)
+    for i in range(len(x_data)):
+        if np.argmax(y_data[i]) == 18:  # letter I
+            fig = plt.figure()
+            plt.imshow(x_data[i], cmap='gray')
+            plt.show()
 
 
 def model_predict_to_log():
     """Load a model and use it to evaluate to save time"""
-    model = keras.models.load_model('saved_model')
+    model = keras.models.load_model('saved_models')
     x_data, y_data, label_names = get_dataset(DatasetEnum.MNIST_AZ)
     x_data = normalize_image(x_data)
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
@@ -37,6 +46,5 @@ def analyse_log():
     np.savetxt("confusion_matrix_log.csv", cm, delimiter=",", fmt='%d')
 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-model_predict_to_log()
-analyse_log()
+if __name__ == "__main__":
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

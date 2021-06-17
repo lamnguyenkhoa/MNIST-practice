@@ -1,13 +1,12 @@
 import cv2
-from choose_dataset import DatasetEnum
-from choose_dataset import get_label
-import model_training
 import numpy as np
+from choose_dataset import get_label, DatasetEnum
+import model_training
 
 
 def display_image_cv2(img):
     cv2.namedWindow('output', cv2.WINDOW_NORMAL)
-    cv2.resizeWindow('output', (200, 200))
+    cv2.resizeWindow('output', 200, 200)
     cv2.imshow('output', img)
     cv2.waitKey(0)
 
@@ -76,33 +75,34 @@ def preprocess_image(src_img):
     else:
         print("This is a dark image")
         ret, thresh_img = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY)
-    thresh_img = cv2.blur(thresh_img, (2, 2))
+    blur_img = cv2.blur(thresh_img, (6, 6))  # Strong blur to detect 2-parts letters such as i and j
+    display_image_cv2(blur_img)
     # Detect each digit in the image = bounding box
-    contours, hierarchy = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    _, bounding_boxes = sort_contours(contours, thresh_img.shape)
+    contours, hierarchy = cv2.findContours(blur_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, bounding_boxes = sort_contours(contours, blur_img.shape)
     for box in bounding_boxes:
         x, y, w, h = box[0], box[1], box[2], box[3]
         loc_imgs.append((x, y, w, h))
         cropped_img = thresh_img[y:y+h, x:x+w]
         # After crop image to 16x20, padding to 28x28
         resized_img = ratio_resize(cropped_img)
-        print("image size:", resized_img.shape)
         padded_img = cv2.copyMakeBorder(resized_img, 4, 4, 6, 6, cv2.BORDER_CONSTANT, 0)
         # More processing
+        padded_img = cv2.blur(padded_img, (2, 2))
         padded_img = cv2.equalizeHist(padded_img)
         prep_imgs.append(padded_img)
     return prep_imgs, loc_imgs
 
 
 def main():
-    model = model_training.get_model(load=True, dataset_used=DatasetEnum.MNIST_AZ)
+    model = model_training.get_trained_model("homemade_model")
     label_names = get_label(DatasetEnum.MNIST_AZ)
     src_img = cv2.imread('test_images/hw_image1.png')
     prep_imgs, loc_imgs = preprocess_image(src_img)
     n = len(prep_imgs)
     result_string = ''
     for i in range(n):
-        display_image_cv2(prep_imgs[i])
+        # display_image_cv2(prep_imgs[i])
         x_test = prep_imgs[i].reshape((1, 28, 28, 1))
         x_test = x_test.astype('float32')
         x_test = x_test / 255.0
@@ -115,7 +115,7 @@ def main():
         # Draw on image
         x, y, w, h = loc_imgs[i]
         cv2.rectangle(src_img, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=2)
-        cv2.putText(src_img, label_names[tmp], org=(x - 10, y - 10),
+        cv2.putText(src_img, label_names[tmp], org=(x - 5, y - 5),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=1)
     cv2.imshow('output', src_img)
     cv2.waitKey(0)

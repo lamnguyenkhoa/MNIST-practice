@@ -76,6 +76,10 @@ def get_label(val):
 
 
 def get_dataset(val):
+    """
+    :param val: Enum for dataset
+    :return: x_data, y_data, label_names
+    """
     x_data, y_data = None, None
     label_names = get_label(val)
     if val == DatasetEnum.MNIST_AZ:

@@ -95,8 +95,7 @@ def preprocess_image(src_img):
 
 
 def main():
-    model = model_training.get_trained_model("homemade_model")
-    label_names = get_label(DatasetEnum.MNIST_AZ)
+    model, label_names = model_training.get_trained_model("homemade_model")
     src_img = cv2.imread('test_images/hw_image1.png')
     prep_imgs, loc_imgs = preprocess_image(src_img)
     n = len(prep_imgs)

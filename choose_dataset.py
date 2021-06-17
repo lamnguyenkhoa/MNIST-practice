@@ -1,3 +1,5 @@
+import enum
+
 import numpy as np
 from keras.datasets import mnist
 from tensorflow.python.keras.utils.np_utils import to_categorical
@@ -5,8 +7,15 @@ from tensorflow.python.keras.utils.np_utils import to_categorical
 
 class DatasetEnum:
     """ Enum class for choosing which dataset"""
-    MNIST_AZ = 1
-    EMNIST_BALANCE = 2
+    MNIST_AZ = 0
+    EMNIST_BALANCE = 1
+    MNIST_EMNIST_LETTER = 2
+
+
+class DatasetDescription:
+    MNIST_AZ = "Trained using the combined MNIST dataset with A-Z dataset"
+    EMNIST_BALANCE = "Trained using the balanced dataset"
+    MNIST_EMNIST_LETTER = "Trained using combined MNIST dataset with EMNIST Letter dataset"
 
 
 def read_data_from_csv(filepath):
@@ -22,7 +31,7 @@ def read_data_from_csv(filepath):
     return x, y
 
 
-def get_mnist_and_az_data():
+def get_mnist_az_data():
     # Load Kaggle A-Z letter data
     az_x_data, az_y_data = read_data_from_csv("training_data/A_Z Handwritten Data.csv")
     # Avoid same labels as mnist digits
@@ -46,16 +55,39 @@ def get_mnist_and_az_data():
 
 def get_emnist_balanced_data():
     # Load EMNIST-balanced dataset. Merge both train and test set into one
-    x_data = []
-    y_data = []
-    x, y = read_data_from_csv("training_data/emnist-balanced-train.csv")
-    x_data.extend(x)
-    y_data.extend(y)
+    x_data, y_data = read_data_from_csv("training_data/emnist-balanced-train.csv")
     x, y = read_data_from_csv("training_data/emnist-balanced-test.csv")
     x_data.extend(x)
     y_data.extend(y)
     n = len(x_data)
     x_data = np.array(x_data).reshape((n, 28, 28, 1))
+    y_data = np.array(y_data)
+    y_data = to_categorical(y_data)
+    return x_data, y_data
+
+
+def get_mnist_emnist_letter_data():
+    # Load EMNIST-letter only dataset. Merge both train and test set into one
+    x_data, y_data = read_data_from_csv("training_data/emnist-letters-train.csv")
+    x, y = read_data_from_csv("training_data/emnist-letters-test.csv")
+    x_data.extend(x)
+    y_data.extend(y)
+    y_data = [y-1 for y in y_data]  # The labels start at 1 so need to minus by 1
+    x_data = np.array(x_data)
+    x_data = x_data.swapaxes(1, 2)  # Rotate data by 90 degree clockwise
+    # Avoid same labels as mnist digits
+    for i in range(len(y_data)):
+        y_data[i] += 10
+
+    # Load MNIST data and merge
+    ((x_train, y_train), (x_test, y_test)) = mnist.load_data()
+    mnist_x_data = np.vstack([x_train, x_test])
+    mnist_y_data = np.hstack([y_train, y_test])
+    x_data = np.vstack([x_data, mnist_x_data])
+    y_data = np.hstack([y_data, mnist_y_data])
+
+    n = len(x_data)
+    x_data = x_data.reshape((n, 28, 28, 1))
     y_data = np.array(y_data)
     y_data = to_categorical(y_data)
     return x_data, y_data
@@ -72,6 +104,10 @@ def get_label(val):
         label_names = "0123456789"
         label_names += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         label_names = [str(c) for c in label_names]
+    if val == DatasetEnum.MNIST_EMNIST_LETTER:
+        label_names = "0123456789"
+        label_names += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        label_names = [str(c) for c in label_names]
     return label_names
 
 
@@ -83,7 +119,9 @@ def get_dataset(val):
     x_data, y_data = None, None
     label_names = get_label(val)
     if val == DatasetEnum.MNIST_AZ:
-        x_data, y_data = get_mnist_and_az_data()
+        x_data, y_data = get_mnist_az_data()
     if val == DatasetEnum.EMNIST_BALANCE:
         x_data, y_data = get_emnist_balanced_data()
+    if val == DatasetEnum.MNIST_EMNIST_LETTER:
+        x_data, y_data = get_mnist_emnist_letter_data()
     return x_data, y_data, label_names

@@ -104,20 +104,21 @@ def main():
         x_test = prep_imgs[i].reshape((1, 28, 28, 1))
         x_test = x_test.astype('float32')
         x_test = x_test / 255.0
-        ans = model.predict(x_test)
-        tmp = np.argmax(ans[0])
+        pred = model.predict(x_test)[0]
+        tmp = np.argmax(pred)
+        prob = pred[tmp]
+        print("[Id {} Prob. ] {} - {:.2f}%".format(i, label_names[tmp], prob * 100))
         result_string = result_string + label_names[tmp]
-        # print('Predicted:', label_names[tmp])
-        # print('Original ans:', ans[0])
-
         # Draw on image
         x, y, w, h = loc_imgs[i]
         cv2.rectangle(src_img, (x, y), (x + w, y + h), color=(0, 255, 0), thickness=2)
         cv2.putText(src_img, label_names[tmp], org=(x - 5, y - 5),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=1)
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(0, 255, 0), thickness=2)
+        cv2.putText(src_img, "id"+str(i), org=(x + 10, y - 5),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, color=(255, 0, 0), thickness=1)
+    print(result_string)
     cv2.imshow('output', src_img)
     cv2.waitKey(0)
-    print(result_string)
     cv2.destroyAllWindows()
 
 

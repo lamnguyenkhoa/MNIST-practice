@@ -7,15 +7,23 @@ from tensorflow.python.keras.utils.np_utils import to_categorical
 
 class DatasetEnum:
     """ Enum class for choosing which dataset"""
-    MNIST_AZ = 0
-    EMNIST_BALANCE = 1
+    MNIST_AZ = 0  # Usually good
+    EMNIST_BALANCE = 1  # Not very useful
     MNIST_EMNIST_LETTER = 2
+    EMNIST_BYMERGE = 3  # Load very slow
 
 
-class DatasetDescription:
-    MNIST_AZ = "Trained using the combined MNIST dataset with A-Z dataset"
-    EMNIST_BALANCE = "Trained using the balanced dataset"
-    MNIST_EMNIST_LETTER = "Trained using combined MNIST dataset with EMNIST Letter dataset"
+def get_data_description(val):
+    desc = "Unknown dataset"
+    if val == 0:
+        desc = "Trained using the combined MNIST dataset with A-Z dataset"
+    if val == 1:
+        desc = "Trained using the balanced dataset"
+    if val == 2:
+        desc = "Trained using combined MNIST dataset with EMNIST Letter dataset"
+    if val == 3:
+        desc = "Trained using EMNIST by merge dataset."
+    return desc
 
 
 def read_data_from_csv(filepath):
@@ -90,9 +98,22 @@ def get_mnist_emnist_letter_data():
     return x_data, y_data
 
 
+def get_emnist_by_merge_data():
+    # Load EMNIST-bymerge dataset. Merge both train and test set into one
+    x_data, y_data = read_data_from_csv("training_data/emnist-bymerge-train.csv")
+    x, y = read_data_from_csv("training_data/emnist-bymerge-test.csv")
+    x_data.extend(x)
+    y_data.extend(y)
+    n = len(x_data)
+    x_data = np.array(x_data).reshape((n, 28, 28, 1))
+    y_data = np.array(y_data)
+    y_data = to_categorical(y_data)
+    return x_data, y_data
+
+
 def get_label(val):
     label_names = None
-    if val == DatasetEnum.EMNIST_BALANCE:
+    if (val == DatasetEnum.EMNIST_BALANCE) or (val == DatasetEnum.EMNIST_BYMERGE):
         label_names = []
         for row in open("training_data/emnist-balanced-mapping.txt"):
             num = int(row.split()[1])
@@ -117,4 +138,6 @@ def get_dataset(val):
         x_data, y_data = get_emnist_balanced_data()
     if val == DatasetEnum.MNIST_EMNIST_LETTER:
         x_data, y_data = get_mnist_emnist_letter_data()
+    if val == DatasetEnum.EMNIST_BYMERGE:
+        x_data, y_data = get_emnist_by_merge_data()
     return x_data, y_data, label_names

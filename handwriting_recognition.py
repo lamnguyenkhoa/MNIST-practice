@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from choose_dataset import get_label, DatasetEnum
 import model_training
 
 
@@ -95,7 +94,7 @@ def preprocess_image(src_img):
 
 
 def main():
-    model, label_names = model_training.get_trained_model("homemade_model")
+    model, label_names = model_training.get_trained_model("vgg_model")
     src_img = cv2.imread('test_images/hw_image1.png')
     prep_imgs, loc_imgs = preprocess_image(src_img)
     n = len(prep_imgs)
@@ -127,5 +126,4 @@ if __name__ == "__main__":
     main()
 
 # TODO: Order of words
-# TODO: How to capture the upper "dot" in letter i
 # TODO: Difference in 1, l, i, j

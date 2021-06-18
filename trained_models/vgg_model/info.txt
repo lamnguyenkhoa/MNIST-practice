@@ -1,2 +1,2 @@
-Trained using MNIST-AZ dataset
-Has 36 labels
+17/06/2021 18:29:17
+Trained using the combined MNIST dataset with EMNIST Letter dataset

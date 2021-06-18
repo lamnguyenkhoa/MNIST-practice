@@ -7,9 +7,9 @@ from tensorflow.python.keras.utils.np_utils import to_categorical
 
 class DatasetEnum:
     """ Enum class for choosing which dataset"""
-    MNIST_AZ = 0  # Usually good
+    MNIST_AZ = 0  # Usually good. Contain lots of uppercase
     EMNIST_BALANCE = 1  # Not very useful
-    MNIST_EMNIST_LETTER = 2
+    MNIST_EMNIST_LETTER = 2  # Fast while still good. Contain cursive letter
     EMNIST_BYMERGE = 3  # Load very slow
 
 

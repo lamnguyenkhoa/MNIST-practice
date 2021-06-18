@@ -23,16 +23,16 @@ def plot_model_result(histories, filepath, save_to_disk=True):
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.savefig(filepath + "/model_accuracy.png")
+    plt.show()  # show() should come after after savefig()
     # summarize history for loss
     plt.plot(histories.history['loss'])
     plt.plot(histories.history['val_loss'])
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.savefig(filepath + "/model_loss.png")
     plt.show()
 
@@ -89,8 +89,8 @@ def train_model(dataset_used, model_used, model_name):
 
 def main():
     train_model(dataset_used=DatasetEnum.MNIST_EMNIST_LETTER,
-                model_used=ModelEnum.HOMEMADE_MODEL,
-                model_name="homemade_model2")
+                model_used=ModelEnum.RESNET_MODEL,
+                model_name="resnet_model")
 
 
 # MAIN CODE START HERE

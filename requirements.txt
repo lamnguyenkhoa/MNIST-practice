@@ -10,9 +10,9 @@ attrs=20.3.0=pyhd3eb1b0_0
 blas=1.0=mkl
 blinker=1.4=py38haa95532_0
 brotlipy=0.7.0=py38h2bbff1b_1003
-ca-certificates=2021.4.13=haa95532_1
+ca-certificates=2021.5.25=haa95532_1
 cachetools=4.2.2=pyhd3eb1b0_0
-certifi=2020.12.5=py38haa95532_0
+certifi=2021.5.30=py38haa95532_0
 cffi=1.14.5=py38hcd4344a_0
 chardet=3.0.4=py38haa95532_1003
 click=7.1.2=pyhd3eb1b0_0
@@ -23,6 +23,7 @@ gast=0.4.0=py_0
 google-auth=1.30.0=pyhd3eb1b0_0
 google-auth-oauthlib=0.4.4=pyhd3eb1b0_0
 google-pasta=0.2.0=py_0
+graphviz=2.38=hfd603c8_2
 grpcio=1.36.1=py38hc60d5dd_1
 h5py=2.10.0=py38h5e291fa_0
 hdf5=1.10.4=h7ebc959_0
@@ -58,6 +59,7 @@ py-opencv=4.0.1=py38he44ac1e_0
 pyasn1=0.4.8=py_0
 pyasn1-modules=0.2.8=py_0
 pycparser=2.20=py_2
+pydotplus=2.0.2=py_3
 pyjwt=1.7.1=py38_0
 pyopenssl=20.0.1=pyhd3eb1b0_1
 pyparsing=2.4.7=pyhd3eb1b0_0

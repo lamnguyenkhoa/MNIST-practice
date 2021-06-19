@@ -3,6 +3,9 @@ import numpy as np
 import os
 import tensorflow.python.util.deprecation as deprecation
 from datetime import datetime
+
+from keras_preprocessing.image import ImageDataGenerator
+from keras.utils.vis_utils import plot_model
 from sklearn.model_selection import KFold, train_test_split
 from choose_dataset import get_dataset, DatasetEnum, get_data_description
 from choose_model import get_model, ModelEnum
@@ -37,13 +40,16 @@ def plot_model_result(histories, filepath, save_to_disk=True):
     plt.show()
 
 
-def image_augment():
-    ...
-
-
-def quick_train_and_evaluate(x_data, y_data, model):
+def quick_train_and_evaluate(x_data, y_data, model, with_aug=False):
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
-    histories = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=1)
+    # Create image augmentation
+    img_aug = ImageDataGenerator(zoom_range=0.2, shear_range=0.15)
+    if with_aug:
+        n = len(x_train)
+        histories = model.fit(x=img_aug.flow(x_train, y_train, batch_size=32), epochs=10,
+                              validation_data=(x_test, y_test), verbose=1, steps_per_epoch=n/32)
+    else:
+        histories = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=1)
     y_predict = model.predict(x_test)
     # Write to log files
     y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
@@ -54,10 +60,8 @@ def quick_train_and_evaluate(x_data, y_data, model):
 
 def get_trained_model(model_name):
     """
-    Load a trained model from /trained_models
+    Load a trained model from /trained_models.
     Not to confuse with get_model(), which is load the model skeleton in choose_model()
-    :param model_name:
-    :return:
     """
     filepath = "trained_models/" + model_name
     model = keras.models.load_model(filepath)
@@ -66,7 +70,7 @@ def get_trained_model(model_name):
     return model, label_names
 
 
-def train_model(dataset_used, model_used, model_name):
+def train_model(dataset_used, model_used, model_name, with_aug):
     """
     After training, save the model in /trained_models folder
     """
@@ -74,23 +78,27 @@ def train_model(dataset_used, model_used, model_name):
     model = get_model(model_used, len(label_names))
     print("Finished loading data")
     x_data = normalize_image(x_data)
-    trained_model, histories = quick_train_and_evaluate(x_data, y_data, model)
+    trained_model, histories = quick_train_and_evaluate(x_data, y_data, model, with_aug)
 
     # Save and log
     filepath = "trained_models/" + model_name
     trained_model.save(filepath)
+    plot_model(model, to_file=filepath+'/model_diagram.png', show_shapes=True, show_layer_names=True)
     np.savetxt(filepath + "/labels.txt", label_names, newline=' ', fmt='%s')
     with open(filepath + "/info.txt", "w") as f:
         f.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S\n"))  # Log datetime
         f.write(get_data_description(dataset_used)+"\n")
+        if with_aug:
+            f.write("Used image augmentation\n")
     plot_model_result(histories, filepath)
     return trained_model
 
 
 def main():
     train_model(dataset_used=DatasetEnum.MNIST_EMNIST_LETTER,
-                model_used=ModelEnum.RESNET_MODEL,
-                model_name="resnet_model")
+                model_used=ModelEnum.INCEPTION_MODEL,
+                model_name="inception_model",
+                with_aug=False)
 
 
 # MAIN CODE START HERE
@@ -101,4 +109,7 @@ if __name__ == "__main__":
     deprecation._PRINT_DEPRECATION_WARNINGS = False
     main()
 
-# TODO: Implement image augmentation
+# TODO: Train INCEPTION_MODEL w/ MNIST_EMNIST_LETTER
+# TODO: Train the new HOMEMADE_MODEL w/ MNIST_EMNIST_LETTER
+# TODO: Train the above HOMEMADE_MODEL w/ MNIST_AZ
+# TODO: Train something w/ EMNIST_BYMERGE

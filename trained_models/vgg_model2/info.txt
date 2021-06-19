@@ -1,0 +1,2 @@
+19/06/2021 12:23:09
+Trained using combined MNIST dataset with EMNIST Letter dataset

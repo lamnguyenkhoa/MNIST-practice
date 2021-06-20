@@ -1,7 +1,5 @@
-import enum
-
 import numpy as np
-from keras.datasets import mnist
+from tensorflow.keras.datasets import mnist
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
 

@@ -1,13 +1,12 @@
-import keras
 import os
 import numpy as np
-from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from tensorflow.keras.models import load_model
 import choose_dataset
 from choose_dataset import get_label, get_dataset, DatasetEnum
 from model_training import normalize_image
-
 
 
 def visualise_sample():
@@ -15,8 +14,7 @@ def visualise_sample():
     print(x_data.shape)
     print(y_data.shape)
     for i in range(len(x_data)):
-        if np.argmax(y_data[i]) == 16:  # character G
-            fig = plt.figure()
+        if np.argmax(y_data[i]) == 7:  # Label id
             plt.imshow(x_data[i], cmap='gray')
             plt.show()
 
@@ -25,7 +23,7 @@ def model_predict_to_log():
     """
     Load a model and use it to evaluate to save time
     """
-    model = keras.models.load_model('trained_models')
+    model = load_model('trained_models')
     x_data, y_data, label_names = get_dataset(DatasetEnum.MNIST_AZ)
     x_data = normalize_image(x_data)
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
@@ -46,7 +44,6 @@ def analyse_log():
         y_test.append(int(row[0]))
         y_predict.append(int(row[1]))
     n = len(y_test)
-    tmp = int(n/2)
     label_names = get_label(DatasetEnum.MNIST_AZ)
     print(classification_report(y_test, y_predict, target_names=label_names))
     cm = confusion_matrix(y_test, y_predict)

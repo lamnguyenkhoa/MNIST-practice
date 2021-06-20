@@ -1,11 +1,10 @@
-import keras
 import numpy as np
 import os
 import tensorflow.python.util.deprecation as deprecation
 from datetime import datetime
-
-from keras_preprocessing.image import ImageDataGenerator
-from keras.utils.vis_utils import plot_model
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.utils import plot_model
 from sklearn.model_selection import KFold, train_test_split
 from choose_dataset import get_dataset, DatasetEnum, get_data_description
 from choose_model import get_model, ModelEnum
@@ -19,7 +18,7 @@ def normalize_image(image_data):
     return image_data
 
 
-def plot_model_result(histories, filepath, save_to_disk=True):
+def plot_model_result(histories, filepath):
     # summarize history for accuracy
     plt.plot(histories.history['accuracy'])
     plt.plot(histories.history['val_accuracy'])
@@ -64,7 +63,7 @@ def get_trained_model(model_name):
     Not to confuse with get_model(), which is load the model skeleton in choose_model()
     """
     filepath = "trained_models/" + model_name
-    model = keras.models.load_model(filepath)
+    model = load_model(filepath)
     with open(filepath + "/labels.txt") as f:
         label_names = f.readline(). split(' ')
     return model, label_names
@@ -95,9 +94,9 @@ def train_model(dataset_used, model_used, model_name, with_aug):
 
 
 def main():
-    train_model(dataset_used=DatasetEnum.MNIST_EMNIST_LETTER,
-                model_used=ModelEnum.INCEPTION_MODEL,
-                model_name="inception_model",
+    train_model(dataset_used=DatasetEnum.MNIST_AZ,
+                model_used=ModelEnum.HOMEMADE_MODEL,
+                model_name="homemade_model4",
                 with_aug=False)
 
 
@@ -109,7 +108,6 @@ if __name__ == "__main__":
     deprecation._PRINT_DEPRECATION_WARNINGS = False
     main()
 
-# TODO: Train INCEPTION_MODEL w/ MNIST_EMNIST_LETTER
 # TODO: Train the new HOMEMADE_MODEL w/ MNIST_EMNIST_LETTER
 # TODO: Train the above HOMEMADE_MODEL w/ MNIST_AZ
 # TODO: Train something w/ EMNIST_BYMERGE

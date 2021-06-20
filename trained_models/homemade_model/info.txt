@@ -1,2 +1,2 @@
-17/06/2021 18:29:17
-Trained using the combined MNIST dataset with AZ dataset
+19/06/2021 20:03:08
+Trained using combined MNIST dataset with EMNIST Letter dataset

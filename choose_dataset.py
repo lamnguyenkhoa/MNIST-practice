@@ -13,13 +13,11 @@ class DatasetEnum:
 
 def get_data_description(val):
     desc = "Unknown dataset"
-    if val == 0:
+    if val == DatasetEnum.MNIST_AZ:
         desc = "Trained using the combined MNIST dataset with A-Z dataset"
-    if val == 1:
-        desc = ""
-    if val == 2:
+    if val == DatasetEnum.MNIST_EMNIST_LETTER:
         desc = "Trained using combined MNIST dataset with EMNIST Letter dataset"
-    if val == 3:
+    if val == DatasetEnum.EMNIST_BYMERGE:
         desc = "Trained using EMNIST by merge dataset."
     return desc
 

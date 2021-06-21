@@ -40,13 +40,16 @@ def plot_model_result(histories, filepath):
 
 
 def quick_train_and_evaluate(x_data, y_data, model, with_aug=False):
-    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.1)
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2)
     # Create image augmentation
-    img_aug = ImageDataGenerator(zoom_range=0.2, shear_range=0.15)
+    img_aug = ImageDataGenerator(zoom_range=0.2,
+                                 shear_range=0.15,
+                                 width_shift_range=[-2, 2],
+                                 height_shift_range=[-2, 2])
     if with_aug:
         n = len(x_train)
-        histories = model.fit(x=img_aug.flow(x_train, y_train, batch_size=32), epochs=10,
-                              validation_data=(x_test, y_test), verbose=1, steps_per_epoch=n/32)
+        histories = model.fit(x=img_aug.flow(x_train, y_train, batch_size=64), epochs=15,
+                              validation_data=(x_test, y_test), verbose=2, steps_per_epoch=n/64)
     else:
         histories = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=1)
     y_predict = model.predict(x_test)
@@ -94,20 +97,20 @@ def train_model(dataset_used, model_used, model_name, with_aug):
 
 
 def main():
-    train_model(dataset_used=DatasetEnum.MNIST_AZ,
+    train_model(dataset_used=DatasetEnum.MNIST_EMNIST_LETTER,
                 model_used=ModelEnum.HOMEMADE_MODEL,
                 model_name="homemade_model4",
-                with_aug=False)
+                with_aug=True)
 
 
 # MAIN CODE START HERE
 if __name__ == "__main__":
-    # make Tensorflow use GPU instead of CPU
+    # Stop notification
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     # stop deprecation warning
     deprecation._PRINT_DEPRECATION_WARNINGS = False
     main()
 
-# TODO: Train the new HOMEMADE_MODEL w/ MNIST_EMNIST_LETTER
-# TODO: Train the above HOMEMADE_MODEL w/ MNIST_AZ
 # TODO: Train something w/ EMNIST_BYMERGE
+# TODO: train_test_split() set test_size = 0.2 result in error in small dataset???
+# TODO: current models has way too high variance

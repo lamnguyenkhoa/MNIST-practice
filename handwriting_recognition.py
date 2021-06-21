@@ -1,3 +1,5 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Stop tensorflow debug logging
 import cv2
 import numpy as np
 import model_training
@@ -30,7 +32,7 @@ def ratio_resize(img):
         else:
             img = cv2.copyMakeBorder(img, 0, 0, diff // 2, diff - (diff // 2), cv2.BORDER_CONSTANT, 0)
     # Then resize it normally
-    resized_img = cv2.resize(img, (20, 20), cv2.INTER_AREA)  # Chose 16,20 because the horizontal sides are more empty
+    resized_img = cv2.resize(img, (20, 24), cv2.INTER_AREA)  # Chose 16,20 because the horizontal sides are more empty
     return resized_img
 
 
@@ -100,9 +102,9 @@ def preprocess_image(src_img, visual=False):
     """ This function assume the src_img contain 1 word """
     prep_imgs = []
     loc_imgs = []
-    blur_img = cv2.blur(src_img, (1, 4))  # Blur to detect 2-parts letters such as i and j
+    blur_img = cv2.blur(src_img, (4, 8))  # Blur to detect 2-parts letters such as i and j
     if visual:
-        display_image_cv2(blur_img, "blur_img in preprocess_image")
+        display_image_cv2(blur_img, "blur_img in preprocess")
     # Detect each digit in the image = bounding box
     contours, _ = cv2.findContours(blur_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     _, bounding_boxes = sort_contours(contours, blur_img.shape, "left-to-right")
@@ -113,24 +115,25 @@ def preprocess_image(src_img, visual=False):
         cropped_img = src_img[y:y + h, x:x + w]
         # After resize image to 16x20, padding to 28x28
         resized_img = ratio_resize(cropped_img)
-        padded_img = cv2.copyMakeBorder(resized_img, 4, 4, 4, 4, cv2.BORDER_CONSTANT, 0)
+        padded_img = cv2.copyMakeBorder(resized_img, 2, 2, 4, 4, cv2.BORDER_CONSTANT, 0)
         # More processing
         padded_img = cv2.blur(padded_img, (2, 2))
         padded_img = cv2.equalizeHist(padded_img)
+        if visual:
+            display_image_cv2(padded_img, "character in preprocess")
         prep_imgs.append(padded_img)
     return prep_imgs, loc_imgs
 
 
 def main():
     model, label_names = model_training.get_trained_model("homemade_model4")
-    src_img = cv2.imread('test_images/hw_image4.jpg')
+    src_img = cv2.imread('test_images/hw_image1.png')
     line_imgs, loc_lines = separate_vertical_lines(src_img)
     id_counter = 0
     result_string = ""
     for i in range(len(line_imgs)):
         prep_imgs, loc_imgs = preprocess_image(line_imgs[i])
         for j in range(len(prep_imgs)):
-            # display_image_cv2(prep_imgs[j])
             x_test = prep_imgs[j].reshape((1, 28, 28, 1))
             x_test = x_test.astype('float32')
             x_test = x_test / 255.0
@@ -157,8 +160,7 @@ def main():
 
 
 # MAIN CODE START HERE
-if __name__ == "__main__":
-    main()
+main()
 
 # TODO: Order of words horizontally
 # TODO: Classify in 1, l, i, j

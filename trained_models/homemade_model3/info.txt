@@ -1,0 +1,2 @@
+22/06/2021 07:25:20
+Trained using EMNIST by merge dataset.

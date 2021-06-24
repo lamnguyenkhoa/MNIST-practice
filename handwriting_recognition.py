@@ -157,6 +157,7 @@ def main():
         result_string += " "  # Space to separate word lines
     print(result_string)
     display_image_cv2(src_img)
+    cv2.imwrite('output.png', src_img)
 
 
 # MAIN CODE START HERE

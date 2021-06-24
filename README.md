@@ -13,3 +13,5 @@ References:
 - https://machinelearningmastery.com/how-to-configure-image-data-augmentation-when-training-deep-learning-neural-networks/
 
 - https://machinelearningmastery.com/how-to-implement-major-architecture-innovations-for-convolutional-neural-networks/
+
+![Output example](./output.png?raw=true "Output example")

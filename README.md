@@ -1,5 +1,6 @@
 ### Practice handwriting digits and letters recognition
 
+All trained models are placed in `/trained_models`. Current best model is `homemade_model4`
 
 Put all data files into `/training_data` in root folder
 

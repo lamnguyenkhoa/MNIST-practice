@@ -32,7 +32,6 @@ def create_homemade_model(n_label):
 def vgg_block(layer_in, n_filters, n_conv):
     """
     Function for creating a vgg block
-    Copied from https://machinelearningmastery.com/how-to-implement-major-architecture-innovations-for-convolutional-neural-networks/
     """
     # add convolutional layers
     for _ in range(n_conv):
@@ -59,7 +58,7 @@ def inception_module(layer_in, f1, f2, f3):
     conv1 = Conv2D(f1, (1, 1), padding='same', activation='relu')(layer_in)
     conv3 = Conv2D(f2, (3, 3), padding='same', activation='relu')(layer_in)
     conv5 = Conv2D(f3, (5, 5), padding='same', activation='relu')(layer_in)
-    pool = MaxPooling2D((3, 3), strides=(1,1), padding='same')(layer_in)
+    pool = MaxPooling2D((3, 3), strides=(1, 1), padding='same')(layer_in)
     # concatenate filters, assumes filters/channels last
     layer_out = concatenate([conv1, conv3, conv5, pool], axis=-1)
     return layer_out

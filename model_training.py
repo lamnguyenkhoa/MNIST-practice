@@ -5,7 +5,7 @@ from datetime import datetime
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import plot_model
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import train_test_split
 from choose_dataset import get_dataset, DatasetEnum, get_data_description
 from choose_model import get_model, ModelEnum
 import matplotlib.pyplot as plt
@@ -51,7 +51,7 @@ def quick_train_and_evaluate(x_data, y_data, model, with_aug=False):
         histories = model.fit(x=img_aug.flow(x_train, y_train, batch_size=64), epochs=15,
                               validation_data=(x_test, y_test), verbose=2, steps_per_epoch=n/64)
     else:
-        histories = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=1)
+        histories = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_data=(x_test, y_test), verbose=2)
     y_predict = model.predict(x_test)
     # Write to log files
     y_write = np.vstack([np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1)])
@@ -97,10 +97,10 @@ def train_model(dataset_used, model_used, model_name, with_aug):
 
 
 def main():
-    train_model(dataset_used=DatasetEnum.MNIST_EMNIST_LETTER,
+    train_model(dataset_used=DatasetEnum.EMNIST_BYMERGE,
                 model_used=ModelEnum.HOMEMADE_MODEL,
-                model_name="homemade_model4",
-                with_aug=True)
+                model_name="homemade_model3",
+                with_aug=False)
 
 
 # MAIN CODE START HERE
